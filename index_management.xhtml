@@ -1,0 +1,351 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="/templates/main/admin_main_template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:a4j="http://richfaces.org/a4j"
+                xmlns:rich="http://richfaces.org/rich"
+                xmlns:fn="http://java.sun.com/jsp/jstl/functions"
+                xmlns:icl="http://java.sun.com/jsf/composite/components">
+
+
+    <ui:define name="content">
+
+
+        <h:form id="index_form">
+
+            <!-- load function for day disable in calendar -->
+            <h:outputScript library="js" name="calendar.js"/>
+
+            <!-- scripts for index page -->
+            <h:outputScript library="js" name="index.js"/>
+
+            <h:outputText styleClass="start_txt" value="#{msg['pages.bo.index']}"/>
+            <!--////////////////////////////////////////////////////////-->
+            <!--               Filter section                           -->
+            <!--////////////////////////////////////////////////////////-->
+            <rich:panel id="filter">
+
+                <h:panelGrid columns="4" styleClass="filter" columnClasses="filter,none,filter_second_column">
+                    <h:outputText styleClass="bo_body_txt" value="#{msg['pages.bo.index.filter.country']}"/>   
+                    <rich:panel>
+                        <label for="country_suggestion" class="hint">#{msg['pages.bo.report.show.all']}</label>
+                        <rich:autocomplete id="country_suggestion"
+                                           autocompleteMethod="#{indexManagementMBean.countryAutoComplete}" 
+                                           value="#{indexManagementMBean.indexParamDTO.countryName}"
+                                           var="item" fetchValue="#{item.itemName}"  
+                                           valueChangeListener="#{indexManagementMBean.autocompleteListener}"
+                                           onclick="#{rich:component('country_suggestion')}.showPopup();"
+                                           popupClass="autocomplete_popup" 
+                                           minChars="0" mode="ajax" autofill="false" showButton="true" selectFirst="false">
+                            <h:outputText value="#{item.itemName}"/>
+                            <a4j:ajax event="selectitem" execute="@this"/>
+                            <a4j:ajax event="blur" execute="@this"/>
+                        </rich:autocomplete>
+                    </rich:panel>
+
+                    <h:outputText styleClass="bo_body_txt" value="#{msg['pages.bo.index.filter.offer.from']}"/>   
+                    <rich:panel>
+                        <h:inputText id="minOffer" styleClass="bo_input_number" 
+                                     onkeyup="return validateInputValue($(this).val());"
+                                     value="#{indexManagementMBean.indexParamDTO.minOffer}">
+                            <f:validateLongRange minimum="0"/>
+                            <a4j:ajax event="keyup" execute="this" listener="#{indexManagementMBean.setSuggestionFilters}">
+                                <a4j:attachQueue requestDelay="300" ignoreDupResponses="true"/>
+                            </a4j:ajax>
+                        </h:inputText>
+                        <h:outputText styleClass="bo_body_txt" value="#{msg['pages.bo.index.filter.offer.to']}"/>  
+                        <h:inputText id="maxOffer" styleClass="bo_input_number" 
+                                     onkeyup="return validateInputValue($(this).val());"
+                                     value="#{indexManagementMBean.indexParamDTO.maxOffer}">
+                            <f:validateLongRange minimum="0"/>
+                            <a4j:ajax event="keyup" execute="this" listener="#{indexManagementMBean.setSuggestionFilters}">
+                                <a4j:attachQueue requestDelay="300"  ignoreDupResponses="true"/>
+                            </a4j:ajax>
+                        </h:inputText>
+                    </rich:panel>
+
+                    <h:outputText styleClass="bo_body_txt" value="#{msg['pages.bo.index.filter.merchant']}"/>   
+                    <rich:panel>
+                        <label for="merchant_suggestion" class="hint">#{msg['pages.bo.report.show.all']}</label>
+                        <rich:autocomplete id="merchant_suggestion"
+                                           autocompleteMethod="#{indexManagementMBean.merchantAutoComplete}" 
+                                           value="#{indexManagementMBean.indexParamDTO.merchantName}"
+                                           var="item" fetchValue="#{item.itemName}"  
+                                           valueChangeListener="#{indexManagementMBean.autocompleteListener}"
+                                           onclick="#{rich:component('merchant_suggestion')}.showPopup();"
+                                           popupClass="autocomplete_popup"
+                                           minChars="0" mode="ajax" autofill="false" showButton="true" selectFirst="false">
+                            <h:outputText value="#{item.itemName}"/>
+                            <a4j:ajax event="selectitem" execute="@this"/>
+                            <a4j:ajax event="blur" execute="@this"/>
+                        </rich:autocomplete>
+                    </rich:panel>
+
+                    <h:outputText styleClass="bo_body_txt" value="#{msg['pages.bo.index.filter.market.data']}"/>  
+                    <rich:calendar id="calendarFrom"
+                                   value="#{indexManagementMBean.indexParamDTO.marketSince}" 
+                                   datePattern="dd/MM/yy"
+                                   dayDisableFunction="disabledDefaultFunction"
+                                   dayClassFunction="disabledClassesDefault">
+                        <a4j:ajax event="change" execute="@this" listener="#{indexManagementMBean.setSuggestionFilters}"/>
+                    </rich:calendar>
+
+                    <h:outputText styleClass="bo_body_txt" value="#{msg['pages.bo.index.filter.brand']}"/>   
+                    <rich:panel>
+                        <a4j:jsFunction name="updateVendorVal" render="vendor_value_field"
+                                        action="#{indexManagementMBean.setSuggestionFilters}">
+                            <a4j:param name="val" assignTo="#{indexManagementMBean.indexParamDTO.vendorName}"/>
+                        </a4j:jsFunction>
+
+                        <label for="brand_suggestion" class="hint">#{msg['pages.bo.report.show.all']}</label>
+                        <rich:autocomplete id="brand_suggestion"
+                                           autocompleteMethod="#{indexManagementMBean.vendorAutoComplete}" 
+                                           value="#{indexManagementMBean.indexParamDTO.vendorName}"
+                                           var="item" fetchValue="#{item.itemName}"  
+                                           valueChangeListener="#{indexManagementMBean.autocompleteListener}"
+                                           onclick="#{rich:component('brand_suggestion')}.showPopup();"
+                                           popupClass="autocomplete_popup"
+                                           minChars="0" mode="ajax" autofill="false" showButton="true" selectFirst="false">
+                            <h:outputText value="#{item.itemName}"/>
+                            <a4j:ajax event="selectitem" execute="@this"/>
+                            <a4j:ajax event="blur" execute="@this"/>
+                        </rich:autocomplete>                          
+                        <f:selectItem itemLabel="#{msg['pages.bo.index.filter.tag.option.all']}" 
+                                      itemValue="#{'option.all'}"/>
+                        <a4j:ajax event="change" execute="@this" listener="#{indexManagementMBean.setSuggestionFilters}"/>  
+                    </h:selectOneRadio>
+
+
+                    <h:outputText styleClass="bo_body_txt" value="#{msg['pages.bo.index.filter.category']}"/>   
+                    <rich:panel>
+                        <label for="category_suggestion" class="hint">#{msg['pages.bo.report.show.all']}</label>
+                        <rich:autocomplete id="category_suggestion"
+                                           autocompleteMethod="#{indexManagementMBean.categoryAutoComplete}" 
+                                           value="#{indexManagementMBean.indexParamDTO.categoryName}"
+                                           var="item" fetchValue="#{item.itemName}"  
+                                           valueChangeListener="#{indexManagementMBean.autocompleteListener}"
+                                           onclick="#{rich:component('category_suggestion')}.showPopup();"
+                                           popupClass="autocomplete_popup" 
+                                           minChars="0" mode="ajax" autofill="false" showButton="true" selectFirst="false">
+                            <h:outputText value="#{item.itemName}"/>
+                            <a4j:ajax event="selectitem" execute="@this"/>
+                            <a4j:ajax event="blur" execute="@this"/>
+                        </rich:autocomplete>
+                    </rich:panel>
+
+                    <h:outputText styleClass="bo_body_txt" value="#{msg['pages.bo.index.filter.on.market']}"/>   
+                    <h:selectBooleanCheckbox value="#{indexManagementMBean.indexParamDTO.onMarket}">
+                        <a4j:ajax event="change" execute="@this" listener="#{indexManagementMBean.setSuggestionFilters}"/>  
+                    </h:selectBooleanCheckbox>
+
+                </h:panelGrid>  
+
+                <h:panelGrid columns="2" styleClass="filter default_block_margin" columnClasses="filter">
+
+                    <h:outputText styleClass="bo_body_txt" value="#{msg['pages.bo.index.filter.quick.search']}"/>  
+                    <h:inputText styleClass="bo_input_text quick_search_filter" 
+                                 onkeyup="return validateInputValue($(this).val());"
+                                 value="#{indexManagementMBean.indexParamDTO.searchString}">
+                        <a4j:ajax event="keyup" execute="@this" listener="#{indexManagementMBean.setSuggestionFilters}">
+                            <a4j:attachQueue requestDelay="300"  ignoreDupResponses="true"/>
+                        </a4j:ajax>
+                    </h:inputText>
+
+                    <h:outputText styleClass="bo_body_txt" value="#{msg['pages.bo.index.filter.core']}"/>   
+                    <h:inputText id="coreid"
+                                 styleClass="bo_input_text tag_search_filter" 
+                                 onkeyup="return validateInputValue($(this).val());"
+                                 value="#{indexManagementMBean.indexParamDTO.coreProductRepositoryId}">
+                        <a4j:ajax event="keyup" execute="@this" listener="#{indexManagementMBean.setSuggestionFilters}">
+                            <a4j:attachQueue requestDelay="300"  ignoreDupResponses="true"/>
+                        </a4j:ajax>
+                        <rich:validator />
+                    </h:inputText>
+
+                    <h:outputText styleClass="bo_body_txt" value="#{msg['pages.bo.index.filter.mpn.ean']}"/>  
+                    <h:inputText styleClass="bo_input_text mpn_ean_search_filter" 
+                                 onkeyup="return validateInputValue($(this).val());"
+                                 value="#{indexManagementMBean.indexParamDTO.prodCode}">
+                        <a4j:ajax event="keyup" execute="@this" listener="#{indexManagementMBean.setSuggestionFilters}">
+                            <a4j:attachQueue requestDelay="300"  ignoreDupResponses="true"/>
+                        </a4j:ajax>
+                    </h:inputText>
+
+                    <h:outputText styleClass="bo_body_txt" value="#{msg['pages.bo.index.filter.tag']}"/>   
+                    <h:inputText styleClass="bo_input_text tag_search_filter" 
+                                 onkeyup="return validateInputValue($(this).val());"
+                                 value="#{indexManagementMBean.indexParamDTO.tag}">
+                        <a4j:ajax event="keyup" execute="@this" listener="#{indexManagementMBean.setSuggestionFilters}">
+                            <a4j:attachQueue requestDelay="300"  ignoreDupResponses="true"/>
+                        </a4j:ajax>
+                    </h:inputText>
+                </h:panelGrid>  
+
+                <h:panelGrid  columns="4" styleClass="filter" columnClasses="filter,none,filter_second_column">
+                    <h:outputText styleClass="bo_body_txt" value="#{msg['pages.bo.index.filter.mpn']}"/>  
+                    <rich:select value="#{indexManagementMBean.indexParamDTO.containMpn}">
+                        <f:selectItem itemValue="pages.bo.index.filter.does.contain" itemLabel="#{msg['pages.bo.index.filter.does.contain']}"/>
+                        <f:selectItem itemValue="pages.bo.index.filter.does.not.contain" itemLabel="#{msg['pages.bo.index.filter.does.not.contain']}"/>
+                        <a4j:ajax event="selectitem" execute="@this" listener="#{indexManagementMBean.setSuggestionFilters}"/>
+                    </rich:select>
+                    <h:inputText styleClass="bo_input_text" 
+                                 converter="inputConverter"
+                                 onkeyup="return validateInputValue($(this).val());"
+                                 value="#{indexManagementMBean.indexParamDTO.mpn}">
+                        <a4j:ajax event="keyup" execute="@this" listener="#{indexManagementMBean.setSuggestionFilters}">
+                            <a4j:attachQueue requestDelay="300"  ignoreDupResponses="true"/>
+                        </a4j:ajax>
+                    </h:inputText>
+="inputConverter"
+                                 onkeyup="return validateInputValue($(this).val());"
+                                 value="#{indexManagementMBean.indexParamDTO.desc}">
+                        <a4j:ajax event="keyup" execute="@this" listener="#{indexManagementMBean.setSuggestionFilters}">
+                            <a4j:attachQueue requestDelay="300"  ignoreDupResponses="true"/>
+                        </a4j:ajax>
+                    </h:inputText>
+
+
+
+                    <!-- query link -->
+                    <f:facet name="footer">
+                        <rich:panel styleClass="query_link_title">
+                            <h:outputText styleClass="bo_body_txt" value="#{msg['pages.staging.filter.query']}"/>  
+                        </rich:panel>
+                        <a4j:outputPanel ajaxRendered="true" styleClass="query_link" layout="block">
+                            <h:inputText styleClass="query_link" value="#{indexManagementMBean.queryLink}"
+                                         onclick="$(this).select();"/>
+                        </a4j:outputPanel>
+                    </f:facet>
+                </h:panelGrid>    
+            </rich:panel>
+
+
+            <!-- message section -->
+            <rich:message for="index_form"/>
+            <rich:message for="minOffer"/>
+            <rich:message for="coreid"/>
+            <rich:message for="maxOffer"/>
+            <rich:messages globalOnly="true" showDetail="false" showSummary="true"/>
+
+
+            <!-- filter returns block -->
+            <a4j:outputPanel ajaxRendered="true" styleClass="filter_return_block" style="float:left;"  layout="block">
+                <rich:panel rendered="#{not empty indexManagementMBean.resultCount}">
+                    <h:outputText styleClass="bo_body_txt" value="#{msg['pages.bo.index.filter.returns']}"/>
+                    <h:outputText styleClass="bo_body_txt" value="#{indexManagementMBean.resultCount}">
+                        <f:convertNumber groupingUsed="true"/>
+                    </h:outputText>   
+                    <h:outputText styleClass="bo_body_txt" value="#{msg['pages.bo.index.filter.records']}"/>
+                </rich:panel>
+
+     le section                                 -->
+            <!--#############################################################-->
+            <rich:panel id="report_output" rendered="#{not empty indexManagementMBean.paginationDTO.pageItems}">
+
+                <h:panelGrid columns="2" styleClass="filter" columnClasses="none,none" style="float:right;">
+                    <rich:panel style="float: right;">
+                        <a4j:outputPanel ajaxRendered="true"  layout="block">
+                            <rich:panel rendered="#{not empty indexManagementMBean.resultCount}" >
+                                <a4j:commandButton action="#{indexManagementMBean.initCSV}" status="csv_status"
+                                                   styleClass="button_large" render="csv" value="#{msg['pages.bo.index.csv']}"/>
+                                <a4j:status name="csv_status">
+                                    <f:facet name="start">
+                                        <h:graphicImage styleClass="bo_image" value="#{applicationMBean.imagePath}/ai.gif"/>
+                                    </f:facet>
+                                </a4j:status>
+                            </rich:panel>
+                        </a4j:outputPanel>                
+                        <!-- iframe used for ajax load of csv -->
+                        <a4j:outputPanel id="csv" ajaxRendered="false">
+                            <rich:panel rendered="#{not empty indexManagementMBean.csvDownloadUrl}">
+                                <iframe src="#{indexManagementMBean.csvDownloadUrl}" style="display: none;" />
+                            </rich:panel>
+                        </a4j:outputPanel>
+                    </rich:panel>   
+                    
+                    <rich:panel style="float: right;">
+                        <a4j:commandButton oncomplete="#{rich:component('merge_mpn_lightbox')}.show();"
+                                           execute="@this" render="merge_mpn"
+                                           styleClass="button" value="#{msg['pages.bo.index.merge']}"/>
+                    </rich:panel>
+                    
+                    <rich:panel/>
+
+                    <rich:panel style="float: right;">
+                   
+
+
+                    <!-- monitor column -->
+                    <rich:column  style="width: 5em; white-space: normal">
+                        <!-- redirect to a new tab where the market monitor
+                            for selected MPN are displayed -->
+                        <!-- link for detail product screen-->
+                        <h:link outcome="product_detail" target="blank" styleClass="bo_link" rendered="#{not empty index.affiliateIds}">
+                            <!-- add affiliate id as get param-->
+                            <f:param value="#{index.affiliateIds.get(0)}" name="affiliate_id"/>
+                            <!-- add mpn as get param-->
+                            <f:param value="#{index.mpn}" name="mpn"/>
+                            <f:param value="#{index.vendorName}" name="vendor_name"/>
+                            <h:graphicImage url="#{applicationMBean.imagePath}/arrow_right.png" styleClass="bo_image"/>                                
+                        </h:link>
+    
+                    </rich:column>
+
+                    <!-- select column -->
+                    <rich:column  style="width: 5em; white-space: normal">
+                        <h:selectBooleanCheckbox value="#{index.selected}">
+                            <a4j:ajax event="change" execute="@this"
+                                      listener="#{indexManagementMBean.manageMergeList(index)}"/>
+                        </h:selectBooleanCheckbox>
+                    </rich:column>
+
+                </rich:dataTable>
+                <!--#########################################################-->
+                <!--                Page pagination section                  -->
+                <!--#########################################################-->
+                <h:panelGroup id="scroll" layout="block" styleClass="scroller_left">  
+                    <rich:dataScroller id="data_scroll" for="report" maxPages="10" 
+                                       status="scroll_status"
+                                       rendered="#{not empty indexManagementMBean.paginationDTO.pageItems and
+                                                   indexManagementMBean.paginationDTO.resultCount gt indexManagementMBean.resultPerPage}"/> 
+
+                    <a4j:status name="scroll_status">
+                        <f:facet name="start">
+                            <h:graphicImage styleClass="bo_image" value="#{applicationMBean.imagePath}/ai.gif"/>
+                        </f:facet>
+                    </a4j:status>
+                </h:panelGroup>
+
+                <rich:panel style="float: right;margin-top: 10px;">
+                    <a4j:commandButton oncomplete="#{rich:component('merge_mpn_lightbox')}.show();"
+                                       execute="@this" render="merge_mpn"
+                                       styleClass="button" value="#{msg['pages.bo.index.merge']}"/>
+                </rich:panel>
+            </rich:panel>
+        </h:form>
+
+
+
+        <!--/////////////////////////////////////////////////////////-->
+        <!--               Include merge light box                    -->
+        <!--/////////////////////////////////////////////////////////-->
+        <ui:include src="/bo/admin/index/index_merge_lightbox.xhtml"/>
+        <!--/////////////////////////////////////////////////////////-->
+        <!--               Include edit light box                    -->
+        <!--/////////////////////////////////////////////////////////-->
+        <ui:include src="/bo/admin/index/index_edit_lightbox.xhtml"/>
+        <!--/////////////////////////////////////////////////////////-->
+        <!--               Include offer light box                   -->
+        <!--/////////////////////////////////////////////////////////-->
+        <ui:include src="/bo/admin/index/index_offer_lightbox.xhtml"/>
+        <!--/////////////////////////////////////////////////////////-->
+        <!--              Include finder light box               -->
+        <!--/////////////////////////////////////////////////////////-->
+        <ui:include src="/bo/admin/index/index_target_lightbox.xhtml"/>
+
+    </ui:define>
+</ui:composition>
+
